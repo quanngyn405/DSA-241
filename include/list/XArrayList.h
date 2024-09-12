@@ -189,6 +189,7 @@ void XArrayList<T>::copyFrom(const XArrayList<T> &list)
      * Also duplicates user-defined comparison and deletion functions, if applicable.
      */
     // TODO
+
 }
 
 template <class T>
@@ -200,24 +201,28 @@ void XArrayList<T>::removeInternalData()
      * Finally, the dynamic array itself is deallocated from memory.
      */
     // TODO
+
 }
 
 template <class T>
 XArrayList<T>::XArrayList(const XArrayList<T> &list)
 {
     // TODO
+
 }
 
 template <class T>
 XArrayList<T> &XArrayList<T>::operator=(const XArrayList<T> &list)
 {
     // TODO
+
 }
 
 template <class T>
 XArrayList<T>::~XArrayList()
 {
     // TODO
+
 }
 
 template <class T>
@@ -252,14 +257,34 @@ template <class T>
 T XArrayList<T>::removeAt(int index)
 {
     // TODO
-
+    if(index < 0 || index >= count){
+        throw out_of_range();
+    }
+    T val = data[index];
+    for(int i = index; i < count - 1; ++i){
+        data[i] = data[i+1];
+    }
+    
+    count--;
+    return val;
 }
 
 template <class T>
 bool XArrayList<T>::removeItem(T item, void (*removeItemData)(T))
 {
     // TODO
-
+    int i = 0;
+    for(; i < count; i++){
+        if(data[i] == item){
+            for(; i < count; ++i){
+                data[i] = data[i+1];
+            }
+            count--;
+            data[count] = T();
+            return 1;
+        }
+    }
+    return 0;
 }
 
 template <class T>
