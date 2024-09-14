@@ -177,7 +177,16 @@ template <class T>
 XArrayList<T>::XArrayList(void (*deleteUserData)(XArrayList<T> *), bool (*itemEqual)(T &, T &), int capacity)
 {
     // TODO
+    this->deleteUserData = deleteUserData;
+    this->itemEqual = itemEqual;
+    this->capacity = capacity;
+    this->count = 0;
 
+    if(capacity > 0) {
+        data = new T[capacity];
+    } else {
+        data = nullptr;
+    }
 }
 
 template <class T>
@@ -189,7 +198,22 @@ void XArrayList<T>::copyFrom(const XArrayList<T> &list)
      * Also duplicates user-defined comparison and deletion functions, if applicable.
      */
     // TODO
+    if(data != nullptr) {
+        delete[] data;
+    }
+    this->deleteUserData = list.deleteUserData;
+    this->itemEqual = list.itemEqual;
+    this->capacity = list.capacity;
+    this->count = list.count;
 
+    if (capacity > 0) {
+        items = new T[capacity];  
+        for (int i = 0; i < count; ++i) {
+            items[i] = list.items[i];  
+        }
+    } else {
+        items = nullptr;  
+    }
 }
 
 template <class T>
@@ -201,13 +225,43 @@ void XArrayList<T>::removeInternalData()
      * Finally, the dynamic array itself is deallocated from memory.
      */
     // TODO
+    if (deleteUserData != nullptr) {
+        deleteUserData(this);  
+    }
 
+    if(data != nullptr) {
+        if constexpr (std::is_pointer<T>::value) {
+            for (int i = 0; i < count; ++i) {
+                delete data[i];
+            }
+        }
+
+        delete[] items;
+        data = nullptr;
+    } 
+
+    this->count = 0;
+    this->capacity = 10;
 }
 
 template <class T>
 XArrayList<T>::XArrayList(const XArrayList<T> &list)
 {
     // TODO
+    this->deleteUserData = list.deleteUserData;
+    this->itemEqual = list.itemEqual;
+    this->capacity = list.capacity;
+    this->count = list.count;
+    
+    data = new T[capacity];
+    
+    for (int i = 0; i < count; ++i) {
+        if constexpr (std::is_pointer<T>::value) {
+            data[i] = new std::remove_pointer<T>::type(*list.data[i]); 
+        } else {
+            data[i] = list.data[i];
+        }
+    }
 
 }
 
@@ -215,14 +269,19 @@ template <class T>
 XArrayList<T> &XArrayList<T>::operator=(const XArrayList<T> &list)
 {
     // TODO
+    if (this == &list) {
+        return *this;
+    }
 
+    removeInternalData();
+    return XArrayList(list);
 }
 
 template <class T>
 XArrayList<T>::~XArrayList()
 {
     // TODO
-
+    removeInternalData();
 }
 
 template <class T>
@@ -239,14 +298,10 @@ template <class T>
 void XArrayList<T>::add(int index, T e)
 {
     // TODO
-    if (index < 0 || index > count) {
-        throw out_of_range("Index is out of range!");
-    }
-
+    checkIndex(index);
     ensureCapacity(count + 1);
     
-    for(int i = count; i > index; --i)
-    {
+    for(int i = count; i > index; --i) {
         data[i] = data[i-1];
     }
     data[index] = e;
@@ -256,35 +311,51 @@ void XArrayList<T>::add(int index, T e)
 template <class T>
 T XArrayList<T>::removeAt(int index)
 {
-    // TODO
-    if(index < 0 || index >= count){
-        throw out_of_range();
-    }
-    T val = data[index];
-    for(int i = index; i < count - 1; ++i){
-        data[i] = data[i+1];
+    checkIndex(index);
+    T val = data[index];  
+    
+    for (int i = index; i < count - 1; ++i) {
+        data[i] = data[i + 1];
     }
     
     count--;
+
+    if constexpr (std::is_pointer<T>::value) {
+        data[count] = nullptr;
+    } else {
+        data[count] = T();  
+    }
+
     return val;
 }
 
+
 template <class T>
-bool XArrayList<T>::removeItem(T item, void (*removeItemData)(T))
-{
-    // TODO
+bool XArrayList<T>::removeItem(T item, void (*removeItemData)(T) = 0) {
     int i = 0;
-    for(; i < count; i++){
-        if(data[i] == item){
-            for(; i < count; ++i){
-                data[i] = data[i+1];
+    for (; i < count; i++) {
+        if (data[i] == item) {
+            if (removeItemData != nullptr) {
+                removeItemData(data[i]);  
+            } else if constexpr (std::is_pointer<T>::value) {
+                delete data[i];  
             }
+            
+            for (int j = i; j < count - 1; j++) {
+                data[j] = data[j + 1];
+            }
+
             count--;
-            data[count] = T();
-            return 1;
+
+            if constexpr (std::is_pointer<T>::value) {
+                data[count] = nullptr;
+            } else {
+                data[count] = T(); 
+            }
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 template <class T>
@@ -304,21 +375,28 @@ int XArrayList<T>::size()
 template <class T>
 void XArrayList<T>::clear()
 {
-    // TODO
     if (data != nullptr) {
+        if constexpr (std::is_pointer<T>::value) {
+            for (int i = 0; i < count; ++i) {
+                delete data[i];
+            }
+        }
         delete[] data;
         data = nullptr;
     }
+
     capacity = 10;
     data = new T[capacity];
     count = 0;
 }
 
+
 template <class T>
 T &XArrayList<T>::get(int index)
 {
     // TODO
-
+    checkIndex(index);
+    return data[index];
 }
 
 template <class T>
@@ -332,6 +410,7 @@ int XArrayList<T>::indexOf(T item)
     }
     return -1; 
 }
+
 template <class T>
 bool XArrayList<T>::contains(T item)
 {
@@ -357,6 +436,7 @@ string XArrayList<T>::toString(string (*item2str)(T &))
      */
 
     // TODO
+
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -371,8 +451,11 @@ void XArrayList<T>::checkIndex(int index)
      * Ensures safe access to the list's elements by preventing invalid index operations.
      */
     // TODO
-
+    if(index < 0 || index >= count) {
+        throw out_of_range("Index is out of range!");
+    }
 }
+
 template <class T>
 void XArrayList<T>::ensureCapacity(int index)
 {
@@ -383,18 +466,16 @@ void XArrayList<T>::ensureCapacity(int index)
      * In case of memory allocation failure, catches std::bad_alloc.
      */
     // TODO
-    if (index < 0 || index >= count) {
-        throw std::out_of_range("Index is out of range");
-    }
-
-    if(index >= capacity)
-    {
-        int new_capacity = max(capacity * 1.5, static_cast<double>(index + 1));
+    checkIndex(index);
+    if(index >= capacity) {
+        int new_capacity = max(static_cast<int>capacity * 1.5, index + 1);
         try {
             T* new_data = new T[new_capacity];
 
-            for (int i = 0; i < count; ++i) {
-                new_data[i] = data[i];
+            if constexpr (std::is_pointer<T>::value) {
+                for (int i = 0; i < count; ++i) {
+                    delete data[i];  
+                }
             }
 
             delete[] data;
