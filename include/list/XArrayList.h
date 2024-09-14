@@ -198,9 +198,7 @@ void XArrayList<T>::copyFrom(const XArrayList<T> &list)
      * Also duplicates user-defined comparison and deletion functions, if applicable.
      */
     // TODO
-    if(data != nullptr) {
-        delete[] data;
-    }
+    removeInternalData();
     this->deleteUserData = list.deleteUserData;
     this->itemEqual = list.itemEqual;
     this->capacity = list.capacity;
@@ -262,7 +260,6 @@ XArrayList<T>::XArrayList(const XArrayList<T> &list)
             data[i] = list.data[i];
         }
     }
-
 }
 
 template <class T>
@@ -404,7 +401,7 @@ int XArrayList<T>::indexOf(T item)
 {
     // TODO
     for (int i = 0; i < count; ++i) {
-        if (data[i] == item) {
+        if (equals(data[i], item, itemEqual)) {
             return i; 
         }
     }
@@ -416,11 +413,11 @@ bool XArrayList<T>::contains(T item)
 {
     // TODO
     for (int i = 0; i < count; ++i) {
-        if (data[i] == item) {
-            return 1; 
+        if (equals(data[i], item, itemEqual)) {
+            return true; 
         }
     }
-    return 0;
+    return false;
 }
 
 template <class T>
@@ -436,7 +433,26 @@ string XArrayList<T>::toString(string (*item2str)(T &))
      */
 
     // TODO
+    string res = "[";
 
+    for (int i = 0; i < count; ++i) {
+        if (item2str) {
+            result += item2str(data[i]);
+        } 
+        else {
+            if constexpr (std::is_pointer<T>::value) {
+                result += std::to_string(*data[i]);
+            } else {
+                result += std::to_string(data[i]);
+            }
+        }
+        if (i < count - 1) {
+            result += ", ";
+        }
+    }
+
+    result += "]";
+    return result;
 }
 
 //////////////////////////////////////////////////////////////////////
