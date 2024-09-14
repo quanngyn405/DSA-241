@@ -440,10 +440,10 @@ string XArrayList<T>::toString(string (*item2str)(T &))
             result += item2str(data[i]);
         } 
         else {
-            if constexpr (std::is_pointer<T>::value) {
-                result += std::to_string(*data[i]);
+            if (constexpr (is_pointer<T>::value)) {
+                result += to_string(*data[i]);
             } else {
-                result += std::to_string(data[i]);
+                result += to_string(data[i]);
             }
         }
         if (i < count - 1) {
