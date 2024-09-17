@@ -16,49 +16,49 @@ using namespace std;
 
 template <class T>
 class XArrayList : public IList<T> {
- public:
-  class Iterator;  // forward declaration
+public:
+    class Iterator;  // forward declaration
 
- protected:
-  T *data;                            // dynamic array to store the list's items
-  int capacity;                       // size of the dynamic array
-  int count;                          // number of items stored in the array
-  bool (*itemEqual)(T &lhs, T &rhs);  // function pointer: test if two items
+protected:
+    T *data;                            // dynamic array to store the list's items
+    int capacity;                       // size of the dynamic array
+    int count;                          // number of items stored in the array
+    bool (*itemEqual)(T &lhs, T &rhs);  // function pointer: test if two items
                                       // (type: T&) are equal or not
-  void (*deleteUserData)(
-      XArrayList<T> *);  // function pointer: be called to remove items (if they
+    void (*deleteUserData)(
+        XArrayList<T> *);  // function pointer: be called to remove items (if they
                          // are pointer type)
 
- public:
-  XArrayList(void (*deleteUserData)(XArrayList<T> *) = 0,
+public:
+    XArrayList(void (*deleteUserData)(XArrayList<T> *) = 0,
              bool (*itemEqual)(T &, T &) = 0, int capacity = 10);
-  XArrayList(const XArrayList<T> &list);
-  XArrayList<T> &operator=(const XArrayList<T> &list);
-  ~XArrayList();
+    XArrayList(const XArrayList<T> &list);
+    XArrayList<T> &operator=(const XArrayList<T> &list);
+    ~XArrayList();
 
-  // Inherit from IList: BEGIN
-  void add(T e);
-  void add(int index, T e);
-  T removeAt(int index);
-  bool removeItem(T item, void (*removeItemData)(T) = 0);
-  bool empty();
-  int size();
-  void clear();
-  T &get(int index);
-  int indexOf(T item);
-  bool contains(T item);
-  string toString(string (*item2str)(T &) = 0);
-  // Inherit from IList: BEGIN
+    // Inherit from IList: BEGIN
+    void add(T e);
+    void add(int index, T e);
+    T removeAt(int index);
+    bool removeItem(T item, void (*removeItemData)(T) = 0);
+    bool empty();
+    int size();
+    void clear();
+    T &get(int index);
+    int indexOf(T item);
+    bool contains(T item);
+    string toString(string (*item2str)(T &) = 0);
+    // Inherit from IList: BEGIN
 
-  void println(string (*item2str)(T &) = 0) {
-    cout << toString(item2str) << endl;
-  }
-  void setDeleteUserDataPtr(void (*deleteUserData)(XArrayList<T> *) = 0) {
-    this->deleteUserData = deleteUserData;
-  }
+    void println(string (*item2str)(T &) = 0) {
+        cout << toString(item2str) << endl;
+    }
+    void setDeleteUserDataPtr(void (*deleteUserData)(XArrayList<T> *) = 0) {
+        this->deleteUserData = deleteUserData;
+    }
 
-  Iterator begin() { return Iterator(this, 0); }
-  Iterator end() { return Iterator(this, count); }
+    Iterator begin() { return Iterator(this, 0); }
+    Iterator end() { return Iterator(this, count); }
 
   /** free:
    * if T is pointer type:
@@ -68,17 +68,17 @@ class XArrayList : public IList<T> {
    *  XArrayList<Point*> list(&XArrayList<Point*>::free);
    *  => Destructor will call free via function pointer "deleteUserData"
    */
-  static void free(XArrayList<T> *list) {
+    static void free(XArrayList<T> *list) {
     typename XArrayList<T>::Iterator it = list->begin();
     while (it != list->end()) {
-      delete *it;
-      it++;
+        delete *it;
+        it++;
     }
   }
 
- protected:
-  void checkIndex(int index);      // check validity of index for accessing
-  void ensureCapacity(int index);  // auto-allocate if needed
+protected:
+    void checkIndex(int index);      // check validity of index for accessing
+    void ensureCapacity(int index);  // auto-allocate if needed
 
   /** equals:
    * if T: primitive type:
@@ -97,59 +97,59 @@ class XArrayList : public IList<T> {
    *           the content pointed by two pointers of type T
    *          See: definition of "equals" of class Point for more detail
    */
-  static bool equals(T &lhs, T &rhs, bool (*itemEqual)(T &, T &)) {
-    if (itemEqual == 0)
-      return lhs == rhs;
-    else
-      return itemEqual(lhs, rhs);
-  }
+    static bool equals(T &lhs, T &rhs, bool (*itemEqual)(T &, T &)) {
+        if (itemEqual == 0)
+            return lhs == rhs;
+        else
+            return itemEqual(lhs, rhs);
+    }
 
-  void copyFrom(const XArrayList<T> &list);
+    void copyFrom(const XArrayList<T> &list);
 
-  void removeInternalData();
+    void removeInternalData();
 
   //////////////////////////////////////////////////////////////////////
   ////////////////////////  INNER CLASSES DEFNITION ////////////////////
   //////////////////////////////////////////////////////////////////////
- public:
+public:
   // Iterator: BEGIN
-  class Iterator {
-   private:
-    int cursor;
-    XArrayList<T> *pList;
+    class Iterator {
+    private:
+        int cursor;
+        XArrayList<T> *pList;
 
-   public:
-    Iterator(XArrayList<T> *pList = 0, int index = 0) {
-      this->pList = pList;
-      this->cursor = index;
-    }
-    Iterator &operator=(const Iterator &iterator) {
-      cursor = iterator.cursor;
-      pList = iterator.pList;
-      return *this;
-    }
-    void remove(void (*removeItemData)(T) = 0) {
-      T item = pList->removeAt(cursor);
-      if (removeItemData != 0) removeItemData(item);
-      cursor -= 1;  // MUST keep index of previous, for ++ later
-    }
+    public:
+        Iterator(XArrayList<T> *pList = 0, int index = 0) {
+            this->pList = pList;
+            this->cursor = index;
+        }
+        Iterator &operator=(const Iterator &iterator) {
+            cursor = iterator.cursor;
+            pList = iterator.pList;
+            return *this;
+        }
+        void remove(void (*removeItemData)(T) = 0) {
+            T item = pList->removeAt(cursor);
+            if (removeItemData != 0) removeItemData(item);
+            cursor -= 1;  
+        }
 
-    T &operator*() { return pList->data[cursor]; }
-    bool operator!=(const Iterator &iterator) {
-      return cursor != iterator.cursor;
-    }
-    // Prefix ++ overload
-    Iterator &operator++() {
-      this->cursor++;
-      return *this;
-    }
-    // Postfix ++ overload
-    Iterator operator++(int) {
-      Iterator iterator = *this;
-      ++*this;
-      return iterator;
-    }
-  };
+        T &operator*() { return pList->data[cursor]; }
+        bool operator!=(const Iterator &iterator) {
+            return cursor != iterator.cursor;
+        }
+        // Prefix ++ overload
+        Iterator &operator++() {
+            this->cursor++;
+            return *this;
+        }
+        // Postfix ++ overload
+        Iterator operator++(int) {
+            Iterator iterator = *this;
+            ++*this;
+            return iterator;
+        }
+    };
   // Iterator: END
 };
 
