@@ -74,6 +74,7 @@ public:
     TensorDataset(xt::xarray<DType> data, xt::xarray<LType> label){
         /* TODO: your code is here for the initialization
          */
+
     }
     /* len():
      *  return the size of dimension 0
@@ -90,6 +91,7 @@ public:
     DataLabel<DType, LType> getitem(int index){
         /* TODO: your code is here
          */
+        
     }
     
     xt::svector<unsigned long> get_data_shape(){
