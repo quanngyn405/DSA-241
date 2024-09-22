@@ -16,16 +16,16 @@ template <class T>
 class DLinkedList : public IList<T>
 {
 public:
-    class Node;        // Forward declaration
-    class Iterator;    // Forward declaration
-    class BWDIterator; // Forward declaration
+    class Node;        
+    class Iterator;    
+    class BWDIterator; 
 
 protected:
-    Node *head; // this node does not contain user's data
-    Node *tail; // this node does not contain user's data
+    Node *head; 
+    Node *tail;
     int count;
-    bool (*itemEqual)(T &lhs, T &rhs);        // function pointer: test if two items (type: T&) are equal or not
-    void (*deleteUserData)(DLinkedList<T> *); // function pointer: be called to remove items (if they are pointer type)
+    bool (*itemEqual)(T &lhs, T &rhs);        
+    void (*deleteUserData)(DLinkedList<T> *); 
 
 public:
     DLinkedList(
@@ -69,14 +69,6 @@ public:
         return true;
     }
 
-    /*
-     * free(DLinkedList<T> *list):
-     *  + to remove user's data (type T, must be a pointer type, e.g.: int*, Point*)
-     *  + if users want a DLinkedList removing their data,
-     *      he/she must pass "free" to constructor of DLinkedList
-     *      Example:
-     *      DLinkedList<T> list(&DLinkedList<T>::free);
-     */
     static void free(DLinkedList<T> *list)
     {
         typename DLinkedList<T>::Iterator it = list->begin();
@@ -87,15 +79,6 @@ public:
         }
     }
 
-    /* begin, end and Iterator helps user to traverse a list forwardly
-     * Example: assume "list" is object of DLinkedList
-
-     DLinkedList<char>::Iterator it;
-     for(it = list.begin(); it != list.end(); it++){
-            char item = *it;
-            std::cout << item; //print the item
-     }
-     */
     Iterator begin()
     {
         return Iterator(this, true);
@@ -105,15 +88,6 @@ public:
         return Iterator(this, false);
     }
 
-    /* last, beforeFirst and BWDIterator helps user to traverse a list backwardly
-     * Example: assume "list" is object of DLinkedList
-
-     DLinkedList<char>::BWDIterator it;
-     for(it = list.last(); it != list.beforeFirst(); it--){
-            char item = *it;
-            std::cout << item; //print the item
-     }
-     */
     BWDIterator bbegin()
     {
         return BWDIterator(this, false);
@@ -131,9 +105,9 @@ protected:
         else
             return itemEqual(lhs, rhs);
     }
-    void copyFrom(const DLinkedList<T> &list);
+    // void copyFrom(const DLinkedList<T> &list);
     void removeInternalData();
-    Node *getPreviousNodeOf(int index);
+    // Node *getPreviousNodeOf(int index);
 
     //////////////////////////////////////////////////////////////////////
     ////////////////////////  INNER CLASSES DEFNITION ////////////////////
@@ -198,7 +172,7 @@ public:
         {
             pNode->prev->next = pNode->next;
             pNode->next->prev = pNode->prev;
-            Node *pNext = pNode->prev; // MUST prev, so iterator++ will go to end
+            Node *pNext = pNode->prev; 
             if (removeItemData != 0)
                 removeItemData(pNode->data);
             delete pNode;
@@ -214,13 +188,11 @@ public:
         {
             return pNode != iterator.pNode;
         }
-        // Prefix ++ overload
         Iterator &operator++()
         {
             pNode = pNode->next;
             return *this;
         }
-        // Postfix ++ overload
         Iterator operator++(int)
         {
             Iterator iterator = *this;
@@ -270,12 +242,10 @@ public:
     bool operator!=(const BWDIterator &iterator) {
         return pNode != iterator.pNode;
     }
-    // Prefix -- overload
     BWDIterator &operator--() {
         pNode = pNode->prev;
         return *this;
     }
-    // Postfix -- overload
     BWDIterator operator--(int) {
         BWDIterator iterator = *this;
         --*this;
@@ -295,18 +265,13 @@ using List = DLinkedList<T>;
 //////////////////////////////////////////////////////////////////////
 
 template <class T>
-DLinkedList<T>::DLinkedList(void (*deleteUserData)(DLinkedList<T> *), bool (*itemEqual)(T &, T &))
+DLinkedList<T>::DLinkedList(void (*deleteUserData)(DLinkedList<T> *), bool (*itemEqual)(T &, T &)) : deleteUserData(deleteUserData), itemEqual(itemEqual), count(0)
 {
     // TODO
-    this->deleteUserData = deleteUserData;
-    this->itemEqual = itemEqual;
-
     this->head = new Node;
     this->tail = new Node;
     this->head->next = tail;
     this->tail->prev = head;
-
-    this->count = 0;
 }
 
 template <class T>
@@ -340,16 +305,7 @@ DLinkedList<T> &DLinkedList<T>::operator=(const DLinkedList<T> &list)
 
     this->clear();
 
-    this->deleteUserData = list.deleteUserData;
-    this->itemEqual = list.itemEqual;
-
-    Node* current = list.head->next;
-    while (current != list.tail) {
-        this->add(current->data);
-        current = current->next;
-    }
-
-    return *this;
+    return DLinkedList(list);
 }
 
 template <class T>
@@ -405,32 +361,27 @@ void DLinkedList<T>::add(int index, T e)
     count++;
 }
 
-template <class T>
-typename DLinkedList<T>::Node *DLinkedList<T>::getPreviousNodeOf(int index)
-{
-    /**
-     * Returns the node preceding the specified index in the doubly linked list.
-     * If the index is in the first half of the list, it traverses from the head; otherwise, it traverses from the tail.
-     * Efficiently navigates to the node by choosing the shorter path based on the index's position.
-     */
-    // TODO
-    if (index <= 0 || index >= count) {
-        return nullptr;
-    }
-    if (index <= count / 2) {
-        Node *current = head;
-        for (int i = 1; i < index; i++) {
-            current = current->next;
-        }
-        return current;  
-    } else {
-        Node *current = tail;
-        for (int i = count - 1; i >= index; i--) {
-            current = current->prev;
-        }
-        return current;  
-    }
-}
+// template <class T>
+// typename DLinkedList<T>::Node *DLinkedList<T>::getPreviousNodeOf(int index)
+// {
+//     // TODO
+//     if (index <= 0 || index >= count) {
+//         return nullptr;
+//     }
+//     if (index <= count / 2) {
+//         Node *current = head;
+//         for (int i = 1; i < index; i++) {
+//             current = current->next;
+//         }
+//         return current;  
+//     } else {
+//         Node *current = tail;
+//         for (int i = count - 1; i >= index; i--) {
+//             current = current->prev;
+//         }
+//         return current;  
+//     }
+// }
 
 template <class T>
 T DLinkedList<T>::removeAt(int index)
@@ -594,17 +545,12 @@ string DLinkedList<T>::toString(string (*item2str)(T &))
     return ss.str();
 }
 
-template <class T>
-void DLinkedList<T>::copyFrom(const DLinkedList<T> &list)
-{
-    /**
-     * Copies the contents of another doubly linked list into this list.
-     * Initializes the current list to an empty state and then duplicates all data and pointers from the source list.
-     * Iterates through the source list and adds each element, preserving the order of the nodes.
-     */
-    // TODO
+// template <class T>
+// void DLinkedList<T>::copyFrom(const DLinkedList<T> &list)
+// {
+//     // TODO
 
-}
+// }
 
 template <class T>
 void DLinkedList<T>::removeInternalData()
@@ -619,8 +565,8 @@ void DLinkedList<T>::removeInternalData()
         deleteUserData(this);
     }
     else {
-        Node* current = head->next;
-        while (current != tail) {
+        Node* current = head;
+        while (current != nullptr) {
             Node* nextNode = current->next;
             delete current;  
             current = nextNode;  
