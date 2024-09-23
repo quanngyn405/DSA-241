@@ -411,12 +411,6 @@ void XArrayList<T>::ensureCapacity(int index)
                 new_data[i] = data[i];
             }
 
-            if constexpr(is_pointer<T>::value) {
-                for (int i = 0; i < count; ++i) {
-                    delete data[i];  
-                }
-            }
-
             delete[] data;
             data = new_data;
             capacity = new_capacity;

@@ -268,8 +268,8 @@ template <class T>
 DLinkedList<T>::DLinkedList(void (*deleteUserData)(DLinkedList<T> *), bool (*itemEqual)(T &, T &)) : deleteUserData(deleteUserData), itemEqual(itemEqual), count(0)
 {
     // TODO
-    this->head = new Node;
-    this->tail = new Node;
+    this->head = new Node();
+    this->tail = new Node();
     this->head->next = tail;
     this->tail->prev = head;
 }
@@ -391,13 +391,12 @@ T DLinkedList<T>::removeAt(int index)
         throw out_of_range("Index is out of range!");
     }
 
-    count--;
 
     if(index == 0) {
         Node* delNode = head->next;
         head->next = delNode->next;
         delNode->next->prev = head;
-
+        count--;
         T val = delNode->data;
         delete delNode;
         return val;
@@ -405,7 +404,7 @@ T DLinkedList<T>::removeAt(int index)
         Node* delNode = tail->prev;
         delNode->prev->next = tail;
         tail->prev = delNode->prev;
-
+        count--;
         T val = delNode->data;
         delete delNode;
         return val;
@@ -418,7 +417,7 @@ T DLinkedList<T>::removeAt(int index)
     Node* delNode = current;
     current->next->prev = current->prev;
     current->prev->next = current->next;
-
+    count--;
     T val = delNode->data;
     delete delNode;
     return val;
@@ -442,6 +441,10 @@ template <class T>
 void DLinkedList<T>::clear()
 {
     // TODO
+    if(deleteUserData) {
+        deleteUserData(this);
+    } 
+
     while(count != 0) {
         removeAt(0);
     }
@@ -564,14 +567,15 @@ void DLinkedList<T>::removeInternalData()
     if(deleteUserData) {
         deleteUserData(this);
     }
-    else {
-        Node* current = head;
-        while (current != nullptr) {
-            Node* nextNode = current->next;
-            delete current;  
-            current = nextNode;  
-        }
+
+    Node* current = head;
+    while (current != nullptr) {
+        Node* nextNode = current->next;
+        current->next = current->prev = nullptr;
+        delete current;  
+        current = nextNode;  
     }
+    
     
     head = tail = nullptr;
     count = 0;
