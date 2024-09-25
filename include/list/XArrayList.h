@@ -206,7 +206,28 @@ XArrayList<T> &XArrayList<T>::operator=(const XArrayList<T> &list)
     }
 
     removeInternalData();
-    return XArrayList(list);
+    
+    this->deleteUserData = list.deleteUserData;
+    this->itemEqual = list.itemEqual;
+    this->capacity = list.capacity;
+    this->count = list.count;
+
+    // Allocate new memory for data
+    data = new T[capacity];
+
+    // Copy the elements
+    for (int i = 0; i < count; ++i) {
+        if constexpr (is_pointer<T>::value) {
+            // Deep copy if T is a pointer
+            data[i] = new typename remove_pointer<T>::type(*list.data[i]);
+        } else {
+            // Regular copy if T is not a pointer
+            data[i] = list.data[i];
+        }
+    }
+
+    // Return the current object
+    return *this;
 }
 
 template <class T>

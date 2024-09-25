@@ -305,7 +305,20 @@ DLinkedList<T> &DLinkedList<T>::operator=(const DLinkedList<T> &list)
 
     this->clear();
 
-    return DLinkedList(list);
+    this->deleteUserData = list.deleteUserData;
+    this->itemEqual = list.itemEqual;
+
+    Node* current = list.head->next;
+    head->next = current;
+    current->prev = head;
+    while (current != list.tail) {
+        this->add(current->data);  
+        current = current->next;
+    }
+    current->next = tail;
+    tail->prev = current;
+
+    return *this;
 }
 
 template <class T>
