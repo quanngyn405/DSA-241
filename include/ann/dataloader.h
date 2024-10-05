@@ -19,17 +19,17 @@
 using namespace std;
 
 template<typename DType, typename LType>
-class DataLoader{
+class DataLoader {
 public:
     
 private:
-    Dataset<DType, LType>* ptr_dataset;
+    Dataset<DType, LType>* dataset_ptr;
     int batch_size;
     int batch_num;
     bool shuffle;
     bool drop_last;
     /*TODO: add more member variables to support the iteration*/
-    xt::xarray<int> id;
+    xt::xarray<unsigned long> id;
     XArrayList<Batch<DType, LType>> batch;
 public:
     DataLoader(Dataset<DType, LType>* dataset_ptr, int batch_size,
@@ -41,8 +41,7 @@ public:
 
         if (this->shuffle) {
             id = xt::arange<int>(dataset_ptr->len());
-            xt::random::default_engine_type engine;
-            xt::random::shuffle(id, engine);
+            xt::random::shuffle(id);
         } else {
             id = xt::arange<int>(dataset_ptr->len());
         }
@@ -56,8 +55,8 @@ public:
                 xt::svector<unsigned long> ds = dataset_ptr->get_data_shape();
                 xt::svector<unsigned long> ls = dataset_ptr->get_label_shape();
 
-                xt::svector<size_t> ds_1(ds.begin(), ds.end());
-                xt::svector<size_t> ls_1(ls.begin(), ls.end());
+                xt::svector<unsigned long> ds_1(ds.begin(), ds.end());
+                xt::svector<unsigned long> ls_1(ls.begin(), ls.end());
 
                 ds_1[0] = batch_size;
                 ls_1[0] = batch_size;
@@ -85,8 +84,8 @@ public:
                     xt::svector<unsigned long> ds = dataset_ptr->get_data_shape();
                     xt::svector<unsigned long> ls = dataset_ptr->get_label_shape();
 
-                    xt::svector<size_t> ds_1(ds.begin(), ds.end());
-                    xt::svector<size_t> ls_1(ls.begin(), ls.end());
+                    xt::svector<unsigned long> ds_1(ds.begin(), ds.end());
+                    xt::svector<unsigned long> ls_1(ls.begin(), ls.end());
 
                     ds_1[0] = batch_size;
                     ls_1[0] = batch_size;
@@ -114,8 +113,8 @@ public:
                     xt::svector<unsigned long> ds = dataset_ptr->get_data_shape();
                     xt::svector<unsigned long> ls = dataset_ptr->get_label_shape();
 
-                    xt::svector<size_t> ds_1(ds.begin(), ds.end());
-                    xt::svector<size_t> ls_1(ls.begin(), ls.end());
+                    xt::svector<unsigned long> ds_1(ds.begin(), ds.end());
+                    xt::svector<unsigned long> ls_1(ls.begin(), ls.end());
 
                     int s = this->dataset_ptr->len() < batch_size ? remained : remained + batch_size;
 
@@ -142,8 +141,9 @@ public:
                         xt::svector<unsigned long> ds = dataset_ptr->get_data_shape();
                         xt::svector<unsigned long> ls = dataset_ptr->get_label_shape();
 
-                        xt::svector<size_t> ds_1(ds.begin(), ds.end());
-                        xt::svector<size_t> ls_1(ls.begin(), ls.end());
+                        xt::svector<unsigned long> ds_1(ds.begin(), ds.end());
+                        xt::svector<unsigned long> ls_1(ls.begin(), ls.end());
+                        
                         if(i == batch_num - 1) {
                             ds_1[0] = batch_size + remained;
                             ls_1[0] = batch_size + remained;

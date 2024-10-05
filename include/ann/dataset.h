@@ -13,6 +13,8 @@
 #ifndef DATASET_H
 #define DATASET_H
 #include "ann/xtensor_lib.h"
+#include "list/listheader.h"
+
 using namespace std;
 
 template<typename DType, typename LType>

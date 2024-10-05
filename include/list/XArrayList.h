@@ -4,14 +4,12 @@
 
 #ifndef XARRAYLIST_H
 #define XARRAYLIST_H
-#include <memory.h>
-
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
-#include <type_traits>
 
 #include "list/IList.h"
+#include <memory.h>
+#include <sstream>
+#include <iostream>
+#include <type_traits>
 using namespace std;
 
 template <class T>
