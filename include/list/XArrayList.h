@@ -76,7 +76,6 @@ protected:
             return itemEqual(lhs, rhs);
     }
 
-    // void copyFrom(const XArrayList<T> &list);
 
     void removeInternalData();
 
@@ -136,30 +135,6 @@ XArrayList<T>::XArrayList(void (*deleteUserData)(XArrayList<T> *), bool (*itemEq
     data = new T[capacity];
 }
 
-// template <class T>
-// void XArrayList<T>::copyFrom(const XArrayList<T> &list)
-// {
-//     // TODO
-//     removeInternalData();
-//     this->deleteUserData = list.deleteUserData;
-//     this->itemEqual = list.itemEqual;
-//     this->capacity = list.capacity;
-//     this->count = list.count;
-
-//     if (capacity > 0) {
-//         data = new T[capacity];  
-//         for (int i = 0; i < count; ++i) {
-//             if constexpr (is_pointer<T>::value) {
-//                 data[i] = new typename remove_pointer<T>::type(*list.data[i]);
-//             } else {
-//                 data[i] = list.data[i];
-//             }
-//         }
-//     } else {
-//         data = nullptr;  
-//     }
-// }
-
 template <class T>
 void XArrayList<T>::removeInternalData()
 {
@@ -184,16 +159,12 @@ XArrayList<T>::XArrayList(const XArrayList<T> &list)
     this->deleteUserData = list.deleteUserData;
     this->itemEqual = list.itemEqual;
     this->capacity = list.capacity;
-    this->count = list.count;
+    this->count = 0;
     
     data = new T[capacity];
     
-    for (int i = 0; i < count; ++i) {
-        if constexpr(is_pointer<T>::value) {
-            data[i] = new typename remove_pointer<T>::type(*list.data[i]); 
-        } else {
-            data[i] = list.data[i];
-        }
+    for (int i = 0; i < list.count; ++i) {
+        this->add(list.data[i]);
     }
 }
 
@@ -205,28 +176,23 @@ XArrayList<T> &XArrayList<T>::operator=(const XArrayList<T> &list)
         return *this;
     }
 
-    removeInternalData();
+    this->removeInternalData();
     
     this->deleteUserData = list.deleteUserData;
     this->itemEqual = list.itemEqual;
     this->capacity = list.capacity;
     this->count = list.count;
 
-    // Allocate new memory for data
     data = new T[capacity];
 
-    // Copy the elements
     for (int i = 0; i < count; ++i) {
         if constexpr (is_pointer<T>::value) {
-            // Deep copy if T is a pointer
             data[i] = new typename remove_pointer<T>::type(*list.data[i]);
         } else {
-            // Regular copy if T is not a pointer
             data[i] = list.data[i];
         }
     }
 
-    // Return the current object
     return *this;
 }
 
@@ -234,7 +200,7 @@ template <class T>
 XArrayList<T>::~XArrayList()
 {
     // TODO
-    removeInternalData();
+    this->removeInternalData();
 }
 
 template <class T>

@@ -21,9 +21,7 @@ private:
     xt::xarray<DType> data;
     xt::xarray<LType> label;
 public:
-    DataLabel(xt::xarray<DType> data,  xt::xarray<LType> label):
-    data(data), label(label){
-    }
+    DataLabel(xt::xarray<DType> data,  xt::xarray<LType> label) : data(data), label(label){}
     xt::xarray<DType> getData() const{ return data; }
     xt::xarray<LType> getLabel() const{ return label; }
 };
@@ -34,12 +32,33 @@ private:
     xt::xarray<DType> data;
     xt::xarray<LType> label;
 public:
-    Batch(xt::xarray<DType> data,  xt::xarray<LType> label):
-    data(data), label(label){
-    }
+    Batch() : data(), label(xt::xarray<LType>()) {}
+    Batch(xt::xarray<DType> data,  xt::xarray<LType> label) : data(data), label(label){}
     virtual ~Batch(){}
     xt::xarray<DType>& getData(){return data; }
     xt::xarray<LType>& getLabel(){return label; }
+
+    friend ostream& operator<<(std::ostream& os, Batch<DType, LType> b) {
+        os << b.getData() << " " << b.getLabel() << endl;  
+        return os;
+    }
+
+    bool operator==(const Batch& other) const {
+        if(data.size() != other.data.size() || label.size() != other.label.size()){
+            return false;
+        }
+        for(auto it1 = data.begin(), it2 = other.data.begin(); it1 != data.end(); ++it1, ++it2){
+            if(*it1 != *it2){
+                return false;
+            }
+        }
+        for(auto it1 = label.begin(), it2 = other.label.begin(); it1 != label.end(); ++it1, ++it2){
+            if(*it1 != *it2){
+                return false;
+            }
+        }
+        return true;
+    }
 };
 
 
@@ -50,7 +69,7 @@ public:
     Dataset(){};
     virtual ~Dataset(){};
     
-    virtual int len()=0;
+    virtual int len() = 0;
     virtual DataLabel<DType, LType> getitem(int index)=0;
     virtual xt::svector<unsigned long> get_data_shape()=0;
     virtual xt::svector<unsigned long> get_label_shape()=0;
@@ -71,10 +90,14 @@ public:
      * 1. data, label;
      * 2. data_shape, label_shape
     */
-    TensorDataset(xt::xarray<DType> data, xt::xarray<LType> label){
+    TensorDataset(xt::xarray<DType> data, xt::xarray<LType> label) : data(data), label(label) {
         /* TODO: your code is here for the initialization
          */
-
+        data_shape = xt::svector<unsigned long>(data.shape().begin(), data.shape().end());
+        label_shape = xt::svector<unsigned long>(label.shape().begin(), label.shape().end());
+        
+        // data_shape = data.shape();
+        // label_shape = label.shape();
     }
     /* len():
      *  return the size of dimension 0
@@ -82,7 +105,7 @@ public:
     int len(){
         /* TODO: your code is here to return the dataset's length
          */
-        return 0; //remove it when complete
+        return data.shape(0); 
     }
     
     /* getitem:
@@ -91,20 +114,25 @@ public:
     DataLabel<DType, LType> getitem(int index){
         /* TODO: your code is here
          */
-        
+        if(idx < 0 || idx >= this->len()) {
+            throw std::out_of_range("Index is out of range!");
+        }
+
+        if(label.dimension() == 0) {
+            return DataLabel<DType, LType>(xt::view(data, idx), label);
+        }
+        return DataLabel<DType, LType>(xt::view(data, idx), xt::view(label, idx));
     }
     
     xt::svector<unsigned long> get_data_shape(){
         /* TODO: your code is here to return data_shape
          */
+        return data_shape;
     }
     xt::svector<unsigned long> get_label_shape(){
         /* TODO: your code is here to return label_shape
          */
+        return label_shape;
     }
 };
-
-
-
 #endif /* DATASET_H */
-
